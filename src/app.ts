@@ -1,3 +1,33 @@
+// Validation logic
+interface Validatable {
+  value: string | number;
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+}
+
+function validate(input: Validatable) {
+  let isValid = true;
+  if (input.required) {
+    isValid = isValid && input.value.toString().trim().length !== 0;
+  }
+  if (input.minLength != null && typeof input.value === 'string') {
+    isValid = isValid && input.value.length >= input.minLength;
+  }
+  if (input.maxLength != null && typeof input.value === 'string') {
+    isValid = isValid && input.value.length <= input.maxLength;
+  }
+  if (input.min != null && typeof input.value === 'number') {
+    isValid = isValid && input.value >= input.min;
+  }
+  if (input.max != null && typeof input.value === 'number') {
+    isValid = isValid && input.value <= input.max;
+  }
+  return isValid;
+}
+
 // Autobind Decorator
 function Autobind(_target: any, _methodName: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
@@ -42,9 +72,11 @@ class ProjectInput {
     const descValue = this.descInput.value;
     const pplValue = this.pplInput.value;
     
-    if (titleValue.trim().length === 0 || 
-      descValue.trim().length === 0 || 
-      pplValue.trim().length === 0 ) alert('Invalid Input')
+    if (
+      !validate({ value: titleValue, required: true, minLength: 3 }) ||
+      !validate({ value: descValue, required: true, minLength: 6 }) ||
+      !validate({ value: +pplValue, required: true, min: 2, max: 6 })
+    ) alert('Invalid Input')
     else return [titleValue, descValue, +pplValue];
   }
   
