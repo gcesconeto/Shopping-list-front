@@ -10,13 +10,15 @@ interface Validatable {
 
 type Listener<T> = (items: T[]) => void;
 
+type Status = 'active' | 'finished';
+
 class Project {
   constructor(
     public id: string, 
     public title: string, 
     public desc: string, 
     public ppl: number,
-    public status: 'active' | 'finished'
+    public status: Status
   ) {}
 }
 // Validation logic
@@ -99,6 +101,7 @@ class State<T> {
     this.listeners.push(newListener);
   }
 }
+
 // State handling class
 class ProjectState extends State<Project> {
   private projects: any[] = [];
@@ -125,6 +128,18 @@ class ProjectState extends State<Project> {
       'active',
     )
     this.projects.push(newProject);
+    this.updateListeners();
+  }
+
+  moveProject(id: string, newStatus: Status) {
+    const project = this.projects.find((project) => project.id === id);
+    if (project && project.status !== newStatus) {
+      project.status = newStatus 
+      this.updateListeners();
+    }
+  }
+
+  private updateListeners() {
     for (const listener of this.listeners) {
       listener(this.projects.slice());
     }
@@ -202,13 +217,14 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
   }
 
   @Autobind
-  dragStartHandler(event: DragEvent): void {
-      console.log(event);
+  dragStartHandler(event: DragEvent) {
+    event.dataTransfer!.setData('text/plain', this.project.id);
+    event.dataTransfer!.effectAllowed = 'move';
   }
 
   @Autobind
-  dragEndHandler(_event: DragEvent): void {
-      console.log('Drag ended');
+  dragEndHandler(_event: DragEvent) {
+      // console.log('Drag ended');
   }
 
   configure() {
@@ -227,7 +243,7 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
 class ProjectList extends Component<HTMLDivElement, HTMLElement> implements DragTarget{
   assignedProjects: Project[];
   
-  constructor(private type: 'active' | 'finished') {
+  constructor(private type: Status) {
     super('project-list', 'app', false, `${type}-projects`);
     this.assignedProjects = [];
     
@@ -236,14 +252,19 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> implements Drag
   }
 
   @Autobind
-  dragOverHandler(_event: DragEvent) {
-    const listEl = this.element.querySelector('ul')!;
-    listEl.classList.add('droppable');
+  dragOverHandler(event: DragEvent) {
+    if (event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
+      event.preventDefault();
+      const listEl = this.element.querySelector('ul')!;
+      listEl.classList.add('droppable');
+    }
   }
 
   @Autobind
-  dropHandler(_event: DragEvent) {
-      
+  dropHandler(event: DragEvent) {
+    event.preventDefault();
+    const id = event.dataTransfer!.getData('text/plain');
+    state.moveProject(id, this.type);
   }
 
   @Autobind
