@@ -149,7 +149,7 @@ class ProjectInput extends Component<HTMLDivElement, HTMLFormElement>{
     if (
       !validate({ value: titleValue, required: true, minLength: 3 }) ||
       !validate({ value: descValue, required: true, minLength: 6 }) ||
-      !validate({ value: +pplValue, required: true, min: 2, max: 6 })
+      !validate({ value: +pplValue, required: true, min: 1, max: 6 })
       ) alert('Invalid Input')
       else return [titleValue, descValue, +pplValue];
     }
@@ -175,7 +175,12 @@ class ProjectInput extends Component<HTMLDivElement, HTMLFormElement>{
 
 // Project component class
 class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
-  project: Project;
+  private project: Project;
+
+  get ppl() {
+    return this.project.ppl < 2 ? '1 person' : `${this.project.ppl} persons`
+  }
+  
   constructor(hostId: string, project: Project) {
     super('single-project', hostId, false, project.id);
     this.project = project;
@@ -187,12 +192,11 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
   configure() {}
   render() {
     this.element.querySelector('h2')!.textContent = this.project.title;
-    this.element.querySelector('h3')!.textContent = this.project.ppl.toString();
+    this.element.querySelector('h3')!.textContent = this.ppl + ' assigned';
     this.element.querySelector('p')!.textContent = this.project.desc;
   }
 }
 
-  
 // List component class
 class ProjectList extends Component<HTMLDivElement, HTMLElement>{
   assignedProjects: Project[];
