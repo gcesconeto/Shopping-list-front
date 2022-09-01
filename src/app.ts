@@ -53,6 +53,18 @@ function Autobind(_target: any, _methodName: string, descriptor: PropertyDescrip
   return adjustedDescriptor;
 }
 
+// Drag & Drop Interfaces
+interface Draggable {
+    dragStartHandler(event: DragEvent): void;
+    dragEndHandler(event: DragEvent): void;
+}
+
+interface DragTarget {
+    dragOverHandler(event: DragEvent) : void;
+    dropHandler(event: DragEvent) : void;
+    dragLeaveHandler(event: DragEvent) : void;
+}
+
 // Generic component class
 abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   templateElement: HTMLTemplateElement;
@@ -120,7 +132,7 @@ class ProjectState extends State<Project> {
 }
 
 // Input component class
-class ProjectInput extends Component<HTMLDivElement, HTMLFormElement>{
+class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
   titleInput: HTMLInputElement;
   descInput: HTMLInputElement;
   pplInput: HTMLInputElement;
@@ -174,13 +186,13 @@ class ProjectInput extends Component<HTMLDivElement, HTMLFormElement>{
 }
 
 // Project component class
-class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements Draggable {
   private project: Project;
 
   get ppl() {
     return this.project.ppl < 2 ? '1 person' : `${this.project.ppl} persons`
   }
-  
+
   constructor(hostId: string, project: Project) {
     super('single-project', hostId, false, project.id);
     this.project = project;
@@ -189,7 +201,21 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
     this.render();
   }
 
-  configure() {}
+  @Autobind
+  dragStartHandler(event: DragEvent): void {
+      console.log(event);
+  }
+
+  @Autobind
+  dragEndHandler(_event: DragEvent): void {
+      console.log('Drag ended');
+  }
+
+  configure() {
+    this.element.addEventListener('dragstart', this.dragStartHandler);
+    this.element.addEventListener('dragend', this.dragEndHandler);
+  }
+
   render() {
     this.element.querySelector('h2')!.textContent = this.project.title;
     this.element.querySelector('h3')!.textContent = this.ppl + ' assigned';
