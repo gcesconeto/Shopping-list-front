@@ -41,6 +41,43 @@ function Autobind(_target: any, _methodName: string, descriptor: PropertyDescrip
   return adjustedDescriptor;
 }
 
+// State handling class
+class ProjectState {
+  private listeners: any[] = [];
+  private projects: any[] = [];
+  private static instance: ProjectState;
+
+  private constructor() {
+
+  }
+
+  static getInstance() {
+    if (this.instance) return this.instance;
+    else {
+      this.instance = new ProjectState();
+      return this.instance;
+    }
+  }
+
+  addListener(newListener: Function) {
+    this.listeners.push(newListener);
+  }
+
+  addProject(title: string, desc: string, people: number) {
+    const newProject = {
+      id: Math.random().toString(),
+      title,
+      desc,
+      people,
+    }
+    this.projects.push(newProject);
+    for (const listener of this.listeners) {
+      listener(this.projects.slice());
+    }
+  }
+}
+
+const state = ProjectState.getInstance();
 
 // Input handling class
 class ProjectInput {
@@ -92,7 +129,7 @@ class ProjectInput {
     const userInput = this.gatherUSerInput();
     if (Array.isArray(userInput)) {
       const [title, desc, ppl] = userInput;
-      console.log(title, desc, ppl);
+      state.addProject(title, desc, ppl);
       this.clearInputs();
     }
   }
@@ -106,24 +143,41 @@ class ProjectInput {
   }
 }
 
-// List rendering class
+// List handling class
 class ProjectList {
   templateElement: HTMLTemplateElement;
   hostElement: HTMLDivElement;
   element: HTMLElement;
+  assignedProjects: any[];
   
   constructor(private type: 'active' | 'finished') {
     this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement;
     this.hostElement = document.getElementById('app')! as HTMLDivElement;
+    this.assignedProjects = [];
     
     const importedNode = document.importNode(this.templateElement.content, true)
     this.element = importedNode.firstElementChild as HTMLElement;
     this.element.id = `${this.type}-projects`;
+
+    state.addListener((projects: any[]) => {
+      this.assignedProjects = projects;
+      this.renderProjects();
+    });
     this.attach();
-    this.renderContent();
+    this.fillContent();
   }
-  
-  private renderContent() {
+
+  private renderProjects() {
+    const listEl = document.getElementById(`${this.type}-projects-list`)! as HTMLUListElement;
+    for (const project of this.assignedProjects) {
+      console.log(project);
+      const projectEl = document.createElement('li')
+      projectEl.textContent = project.title;
+      listEl.appendChild(projectEl);
+    }
+  }
+
+  private fillContent() {
     const listId = `${this.type}-projects-list`;
     this.element.querySelector('ul')!.id = listId;
     this.element.querySelector('h2')!.textContent = this.type.toUpperCase() + ' PROJECTS';
