@@ -119,7 +119,7 @@ class ProjectState extends State<Project> {
   }
 }
 
-// Input handling class
+// Input component class
 class ProjectInput extends Component<HTMLDivElement, HTMLFormElement>{
   titleInput: HTMLInputElement;
   descInput: HTMLInputElement;
@@ -172,8 +172,28 @@ class ProjectInput extends Component<HTMLDivElement, HTMLFormElement>{
   }
   
 }
+
+// Project component class
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
+  project: Project;
+  constructor(hostId: string, project: Project) {
+    super('single-project', hostId, false, project.id);
+    this.project = project;
+
+    this.configure();
+    this.render();
+  }
+
+  configure() {}
+  render() {
+    this.element.querySelector('h2')!.textContent = this.project.title;
+    this.element.querySelector('h3')!.textContent = this.project.ppl.toString();
+    this.element.querySelector('p')!.textContent = this.project.desc;
+  }
+}
+
   
-// List handling class
+// List component class
 class ProjectList extends Component<HTMLDivElement, HTMLElement>{
   assignedProjects: Project[];
   
@@ -202,9 +222,7 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement>{
     const listEl = document.getElementById(`${this.type}-projects-list`)! as HTMLUListElement;
     listEl.innerHTML = '';
     for (const project of this.assignedProjects) {
-      const projectEl = document.createElement('li')
-      projectEl.textContent = project.title;
-      listEl.appendChild(projectEl);
+      new ProjectItem(this.element.querySelector('ul')!.id, project);
     }
   }
 }
