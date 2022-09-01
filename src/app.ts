@@ -1,4 +1,4 @@
-// Validation logic
+// Types
 interface Validatable {
   value: string | number;
   required?: boolean;
@@ -8,6 +8,18 @@ interface Validatable {
   max?: number;
 }
 
+type Listener = (items: Project[]) => void;
+
+class Project {
+  constructor(
+    public id: string, 
+    public title: string, 
+    public desc: string, 
+    public ppl: number,
+    public status: 'active' | 'finished'
+  ) {}
+}
+// Validation logic
 function validate(input: Validatable) {
   let isValid = true;
   if (input.required) {
@@ -43,7 +55,7 @@ function Autobind(_target: any, _methodName: string, descriptor: PropertyDescrip
 
 // State handling class
 class ProjectState {
-  private listeners: any[] = [];
+  private listeners: Listener[] = [];
   private projects: any[] = [];
   private static instance: ProjectState;
 
@@ -59,17 +71,18 @@ class ProjectState {
     }
   }
 
-  addListener(newListener: Function) {
+  addListener(newListener: Listener) {
     this.listeners.push(newListener);
   }
 
-  addProject(title: string, desc: string, people: number) {
-    const newProject = {
-      id: Math.random().toString(),
+  addProject(title: string, desc: string, ppl: number) {
+    const newProject = new Project(
+      Math.random().toString(),
       title,
       desc,
-      people,
-    }
+      ppl,
+      'active',
+    )
     this.projects.push(newProject);
     for (const listener of this.listeners) {
       listener(this.projects.slice());
@@ -148,7 +161,7 @@ class ProjectList {
   templateElement: HTMLTemplateElement;
   hostElement: HTMLDivElement;
   element: HTMLElement;
-  assignedProjects: any[];
+  assignedProjects: Project[];
   
   constructor(private type: 'active' | 'finished') {
     this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement;
@@ -159,8 +172,8 @@ class ProjectList {
     this.element = importedNode.firstElementChild as HTMLElement;
     this.element.id = `${this.type}-projects`;
 
-    state.addListener((projects: any[]) => {
-      this.assignedProjects = projects;
+    state.addListener((projects: Project[]) => {
+      this.assignedProjects = projects.filter((project) => project.status === this.type);
       this.renderProjects();
     });
     this.attach();
@@ -169,8 +182,8 @@ class ProjectList {
 
   private renderProjects() {
     const listEl = document.getElementById(`${this.type}-projects-list`)! as HTMLUListElement;
+    listEl.innerHTML = '';
     for (const project of this.assignedProjects) {
-      console.log(project);
       const projectEl = document.createElement('li')
       projectEl.textContent = project.title;
       listEl.appendChild(projectEl);
