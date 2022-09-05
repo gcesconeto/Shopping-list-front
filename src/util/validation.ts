@@ -1,4 +1,4 @@
-import { Validatable } from "../models/types.js";
+import { Validatable } from "../models/types";
 
 // Validation logic
 export function validate(input: Validatable) {

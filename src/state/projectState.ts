@@ -1,4 +1,4 @@
-import { Listener, Status, Project } from '../models/types.js';
+import { Listener, Status, Project } from '../models/types';
 
 // Generic State class
 class State<T> {
