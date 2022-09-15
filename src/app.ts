@@ -1,13 +1,13 @@
-import { ProjectInput } from "./components/projectInput";
-import { ProjectList } from "./components/projectList";
-import { ProjectState } from "./state/projectState";
+import { ProjectInput } from "./components/itemInput";
+import { List } from "./components/list";
+import { ListState } from "./state/listState";
 
-const state = ProjectState.getInstance();
+const state = ListState.getInstance();
 
 new ProjectInput();
 
-new ProjectList('active');
+new List('active');
 
-new ProjectList('finished');
+new List('pool');
 
 export { state }
