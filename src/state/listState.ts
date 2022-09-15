@@ -27,13 +27,13 @@ export class ListState extends State<Item> {
   }
 
   addItem(itemName: string) {
-    const newProject = new Item(
+    const newItem = new Item(
       Math.random().toString(),
       itemName,
       1,
       'active'
     )
-    this.items.push(newProject);
+    this.items.push(newItem);
     this.updateListeners();
   }
 
@@ -45,10 +45,24 @@ export class ListState extends State<Item> {
     }
   }
 
+  toggleStatus(id: string) {
+    const item = this.items.find((item) => item.id === id);
+    if (item && item.status === 'active') {
+      item.status = 'pool';
+      this.updateListeners();
+    } else if (item && item.status === 'pool') {
+      item.status = 'active';
+      this.updateListeners();
+    }
+  }
+
   decreaseItemQty(id: string) {
     const item = this.items.find((item) => item.id === id);
     if (item && item.qty > 1) {
       item.qty -= 1;
+      this.updateListeners();
+    } else if (item && item.qty === 1) {
+      this.toggleStatus(id);
       this.updateListeners();
     }
   }
